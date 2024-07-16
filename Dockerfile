@@ -7,7 +7,8 @@ RUN \
   echo "**** install runtime packages ****" && \
   apk add --no-cache \
     python3 \
-	py3-apscheduler
+	py3-apscheduler \
+	py3-requests
 
 # copy local files
 COPY root/ /
