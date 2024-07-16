@@ -81,7 +81,7 @@ def main():
     client_id = os.getenv('JAMF_CLIENT_ID', '')
     client_secret = os.getenv('JAMF_CLIENT_SECRET', '')
     local_folder = '/packages'
-    api_endpoint = os.getenv('JAMF_CLIENT_SECRET', '')
+    api_endpoint = os.getenv('JAMF_URL', '')
     cron_schedule = os.getenv('SYNC_SCHEDULE', '0 0 * * *')
     sync_now = os.getenv('SYNC_NOW', 'false').lower() == 'true'
     sync = JamfProSync(api_endpoint, client_id, client_secret, local_folder)
