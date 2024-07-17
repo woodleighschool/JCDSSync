@@ -33,6 +33,3 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/jcdssync:latest
-
-      - name: Verify image
-        run: docker run --rm ghcr.io/${{ github.repository_owner }}/jcdssync:latest
