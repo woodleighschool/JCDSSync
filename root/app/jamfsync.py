@@ -1,6 +1,7 @@
 import requests
 import os
 import hashlib
+import time
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -8,7 +9,11 @@ from apscheduler.triggers.cron import CronTrigger
 import logging
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
+numeric_level = getattr(logging, log_level, None)
+if not isinstance(numeric_level, int):
+    raise ValueError(f'Invalid log level: {log_level}')
+logging.basicConfig(level=numeric_level, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 class JCDSSync:
@@ -19,7 +24,7 @@ class JCDSSync:
         self.local_folder = Path(local_folder)
         self.access_token = None
         self.token_expiry = datetime.now(timezone.utc)
-        logging.info('Initialized JCDSSync')
+        logging.info('Initialised JCDSSync')
 
     def authenticate_jamf_api(self):
         logging.info('Authenticating with Jamf Pro API...')
@@ -66,7 +71,7 @@ class JCDSSync:
         logging.info(f'Successfully downloaded {file_name} to {local_path}')
 
     def sync(self):
-        logging.info('Starting synchronization process...')
+        logging.info('Starting Synchronisation process...')
         self.check_token()
         packages = self.fetch_packages()
         package_filenames = {package['fileName'] for package in packages}
@@ -86,6 +91,7 @@ class JCDSSync:
             if existing_file.name not in package_filenames and not existing_file.name.startswith('.'):
                 logging.info(f'Deleting outdated file: {existing_file.name}')
                 existing_file.unlink()
+        logging.info('Synchronisation complete.')
 
     @staticmethod
     def md5(file_path):
@@ -102,19 +108,20 @@ def main():
     client_secret = os.getenv('JAMF_CLIENT_SECRET', '')
     local_folder = '/packages'
     api_endpoint = os.getenv('JAMF_URL', '')
-    cron_schedule = os.getenv('SYNC_SCHEDULE', '0 0 * * *')
     sync_now = os.getenv('SYNC_NOW', 'false').lower() == 'true'
     sync = JCDSSync(api_endpoint, client_id, client_secret, local_folder)
     if sync_now:
         logging.info('Running sync immediately due to SYNC_NOW setting')
         sync.sync()
+        while True:
+            time.sleep(10)
     else:
+        cron_schedule = os.getenv('SYNC_SCHEDULE', '0 0 * * *')
         scheduler = BackgroundScheduler()
         scheduler.add_job(sync.sync, CronTrigger.from_crontab(cron_schedule))
         scheduler.start()
         logging.info(f'Scheduled sync with cron: {cron_schedule}')
         try:
-            import time
             while True:
                 time.sleep(10)
         except (KeyboardInterrupt, SystemExit):
