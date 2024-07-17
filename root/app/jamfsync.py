@@ -8,7 +8,7 @@ from apscheduler.triggers.cron import CronTrigger
 import logging
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 class JCDSSync:
@@ -77,6 +77,7 @@ class JCDSSync:
                 local_md5 = self.md5(local_file_path)
                 if local_md5 != remote_md5:
                     logging.info(f'MD5 mismatch, updating file: {package["fileName"]}')
+                    logging.debug(f'{local_md5} != {remote_md5}')
                     self.download_file(package['fileName'], local_file_path)
             else:
                 logging.info(f'Downloading new file: {package["fileName"]}')
@@ -88,11 +89,11 @@ class JCDSSync:
 
     @staticmethod
     def md5(file_path):
-        hash_md5 = hashlib.md5()
         with open(file_path, "rb") as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                hash_md5.update(chunk)
-        return hash_md5.hexdigest()
+            file_hash = hashlib.md5()
+            while chunk := f.read(8192):
+                file_hash.update(chunk)
+        return file_hash.hexdigest()
 
 
 def main():
