@@ -1,4 +1,4 @@
-FROM ghcr.io/imagegenius/baseimage-alpine:3.20
+FROM ghcr.io/linuxserver/baseimage-alpine:3.20
 
 # set version label
 LABEL maintainer="hydazz"

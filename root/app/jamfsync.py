@@ -113,8 +113,6 @@ def main():
     if sync_now:
         logging.info('Running sync immediately due to SYNC_NOW setting')
         sync.sync()
-        while True:
-            time.sleep(10)
     else:
         cron_schedule = os.getenv('SYNC_SCHEDULE', '0 0 * * *')
         scheduler = BackgroundScheduler()
