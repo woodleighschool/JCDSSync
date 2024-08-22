@@ -26,10 +26,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: ghcr.io/${{ github.repository_owner }}/jcdssync:latest
+      - name: Build and push Docker image     
+        run: |        
+          docker buildx build \
+          --platform linux/amd64,linux/arm64 \ 
+          --tag ghcr.io/${{ github.repository_owner }}/jcdssync:latest \
+          --file ./Dockerfile \
+          --output type=image,push=true .
