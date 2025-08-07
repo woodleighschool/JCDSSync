@@ -1,0 +1,33 @@
+# Example Dockerfile for JCDSSync
+FROM python:3.11-slim
+
+# Create packages directory
+RUN mkdir -p /packages
+
+# Copy the wheel file (download from GitHub release)
+# COPY jcdssync-*.whl /tmp/
+
+# Install the package
+# Option 1: Install from wheel file (recommended)
+# RUN pip3 install /tmp/jcdssync-*.whl
+
+# Option 2: Install directly from GitHub (requires git)
+RUN pip3 install git+https://github.com/woodleighschool/JCDSSync.git
+
+# Set environment variables (override these when running the container)
+ENV JAMF_URL=""
+ENV JAMF_CLIENT_ID=""
+ENV JAMF_CLIENT_SECRET=""
+ENV SYNC_NOW="false"
+ENV SYNC_SCHEDULE="0 0 * * *"
+ENV LOG_LEVEL="INFO"
+
+# Create a non-root user
+RUN useradd -m -u 1000 jcdssync
+USER jcdssync
+
+# Set working directory
+WORKDIR /packages
+
+# Run the application
+CMD ["jcdssync"]

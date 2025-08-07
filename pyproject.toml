@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jcdssync"
+version = "1.0.0"
+description = "Syncs JCDS to a local folder via the Jamf API"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [{ name = "hydazz" }]
+keywords = ["jamf", "jcds", "sync", "packages", "automation"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: System Administrators",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Utilities",
+]
+dependencies = ["requests>=2.31.0", "APScheduler>=3.10.0"]
+
+[project.scripts]
+jcdssync = "jamfsync:main"
+
+[project.urls]
+Homepage = "https://github.com/woodleighschool/JCDSSync"
+Repository = "https://github.com/woodleighschool/JCDSSync"
+Issues = "https://github.com/woodleighschool/JCDSSync/issues"
+
+[tool.setuptools]
+py-modules = ["jamfsync"]
