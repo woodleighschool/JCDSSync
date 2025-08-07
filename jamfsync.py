@@ -2,6 +2,7 @@ import requests
 import os
 import hashlib
 import time
+import sys
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -103,13 +104,69 @@ class JCDSSync:
 
 
 def main():
+    # Check for help flag
+    if len(sys.argv) > 1 and sys.argv[1] in ['--help', '-h', 'help']:
+        print("""
+JCDSSync - Jamf Cloud Distribution Service Synchronization Tool
+
+DESCRIPTION:
+    Synchronizes JCDS packages to a local folder via the Jamf Pro API.
+    Authenticates using OAuth2 client credentials and maintains file integrity 
+    using MD5 checksums.
+
+USAGE:
+    jcdssync [--help]
+
+ENVIRONMENT VARIABLES:
+    JAMF_URL           Your Jamf Pro server URL (required)
+    JAMF_CLIENT_ID     OAuth2 client ID (required)  
+    JAMF_CLIENT_SECRET OAuth2 client secret (required)
+    SYNC_NOW           Run sync immediately (true/false, default: false)
+    SYNC_SCHEDULE      Cron schedule for sync (default: "0 0 * * *")
+    LOG_LEVEL          Logging level (DEBUG/INFO/WARNING/ERROR, default: INFO)
+
+EXAMPLES:
+    # Run once immediately
+    JAMF_URL="https://jamf.example.com" \\
+    JAMF_CLIENT_ID="client-id" \\
+    JAMF_CLIENT_SECRET="secret" \\
+    SYNC_NOW=true \\
+    jcdssync
+
+    # Run with scheduled sync (daily at 2 AM)
+    JAMF_URL="https://jamf.example.com" \\
+    JAMF_CLIENT_ID="client-id" \\
+    JAMF_CLIENT_SECRET="secret" \\
+    SYNC_SCHEDULE="0 2 * * *" \\
+    jcdssync
+
+For more information, visit: https://github.com/woodleighschool/JCDSSync
+        """)
+        return
+
     logging.info('Script started')
+    
+    # Validate required environment variables
     client_id = os.getenv('JAMF_CLIENT_ID', '')
     client_secret = os.getenv('JAMF_CLIENT_SECRET', '')
-    local_folder = '/packages'
     api_endpoint = os.getenv('JAMF_URL', '')
+    
+    if not all([client_id, client_secret, api_endpoint]):
+        logging.error('Missing required environment variables:')
+        if not api_endpoint:
+            logging.error('  - JAMF_URL is required')
+        if not client_id:
+            logging.error('  - JAMF_CLIENT_ID is required') 
+        if not client_secret:
+            logging.error('  - JAMF_CLIENT_SECRET is required')
+        logging.error('Run "jcdssync --help" for usage information')
+        sys.exit(1)
+    
+    local_folder = '/packages'
     sync_now = os.getenv('SYNC_NOW', 'false').lower() == 'true'
+    
     sync = JCDSSync(api_endpoint, client_id, client_secret, local_folder)
+    
     if sync_now:
         logging.info('Running sync immediately due to SYNC_NOW setting')
         sync.sync()

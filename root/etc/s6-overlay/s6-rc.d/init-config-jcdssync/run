@@ -1,9 +1,0 @@
-#!/usr/bin/with-contenv bash
-
-mkdir -p /packages
-
-# permissions
-chown -R abc:abc \
-	/config
-chown abc:abc \
-	/packages
