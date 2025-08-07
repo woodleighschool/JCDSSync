@@ -1,6 +1,21 @@
 {
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-    "extends": [
-        "config:recommended"
+    "extends": ["config:recommended"],
+    "python": {
+        "enabled": true
+    },
+    "pip_requirements": {
+        "enabled": true,
+        "fileMatch": ["requirements\\.txt$", "requirements/.*\\.txt$"]
+    },
+    "pip_setup": {
+        "enabled": true,
+        "fileMatch": ["setup\\.py$", "pyproject\\.toml$"]
+    },
+    "packageRules": [
+        {
+            "matchManagers": ["pip_requirements", "pip_setup"],
+            "groupName": "Python dependencies"
+        }
     ]
 }
