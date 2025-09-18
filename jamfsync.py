@@ -89,7 +89,10 @@ class JCDSSync:
                 logging.info(f'Downloading new file: {package["fileName"]}')
                 self.download_file(package['fileName'], local_file_path)
         for existing_file in self.local_folder.iterdir():
-            if existing_file.name not in package_filenames and not existing_file.name.startswith('.'):
+            if (existing_file.name not in package_filenames and
+                not existing_file.name.startswith('.') and
+                existing_file.is_file() and
+                    existing_file.suffix.lower() == '.pkg'):
                 logging.info(f'Deleting outdated file: {existing_file.name}')
                 existing_file.unlink()
         logging.info('Synchronisation complete.')
@@ -145,28 +148,28 @@ For more information, visit: https://github.com/woodleighschool/JCDSSync
         return
 
     logging.info('Script started')
-    
+
     # Validate required environment variables
     client_id = os.getenv('JAMF_CLIENT_ID', '')
     client_secret = os.getenv('JAMF_CLIENT_SECRET', '')
     api_endpoint = os.getenv('JAMF_URL', '')
-    
+
     if not all([client_id, client_secret, api_endpoint]):
         logging.error('Missing required environment variables:')
         if not api_endpoint:
             logging.error('  - JAMF_URL is required')
         if not client_id:
-            logging.error('  - JAMF_CLIENT_ID is required') 
+            logging.error('  - JAMF_CLIENT_ID is required')
         if not client_secret:
             logging.error('  - JAMF_CLIENT_SECRET is required')
         logging.error('Run "jcdssync --help" for usage information')
         sys.exit(1)
-    
+
     local_folder = '/packages'
     sync_now = os.getenv('SYNC_NOW', 'false').lower() == 'true'
-    
+
     sync = JCDSSync(api_endpoint, client_id, client_secret, local_folder)
-    
+
     if sync_now:
         logging.info('Running sync immediately due to SYNC_NOW setting')
         sync.sync()
