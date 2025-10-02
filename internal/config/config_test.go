@@ -7,14 +7,20 @@ import (
 
 func TestLoad(t *testing.T) {
 	// Set required environment variables
-	os.Setenv("INSTANCE_DOMAIN", "https://test.jamfcloud.com")
-	os.Setenv("CLIENT_ID", "test-client")
-	os.Setenv("CLIENT_SECRET", "test-secret")
+	if err := os.Setenv("INSTANCE_DOMAIN", "https://test.jamfcloud.com"); err != nil {
+		t.Fatalf("Failed to set INSTANCE_DOMAIN: %v", err)
+	}
+	if err := os.Setenv("CLIENT_ID", "test-client"); err != nil {
+		t.Fatalf("Failed to set CLIENT_ID: %v", err)
+	}
+	if err := os.Setenv("CLIENT_SECRET", "test-secret"); err != nil {
+		t.Fatalf("Failed to set CLIENT_SECRET: %v", err)
+	}
 
 	defer func() {
-		os.Unsetenv("INSTANCE_DOMAIN")
-		os.Unsetenv("CLIENT_ID")
-		os.Unsetenv("CLIENT_SECRET")
+		_ = os.Unsetenv("INSTANCE_DOMAIN")
+		_ = os.Unsetenv("CLIENT_ID")
+		_ = os.Unsetenv("CLIENT_SECRET")
 	}()
 
 	cfg, err := Load()
@@ -45,9 +51,9 @@ func TestLoad(t *testing.T) {
 
 func TestLoadMissingRequired(t *testing.T) {
 	// Clear environment
-	os.Unsetenv("INSTANCE_DOMAIN")
-	os.Unsetenv("CLIENT_ID")
-	os.Unsetenv("CLIENT_SECRET")
+	_ = os.Unsetenv("INSTANCE_DOMAIN")
+	_ = os.Unsetenv("CLIENT_ID")
+	_ = os.Unsetenv("CLIENT_SECRET")
 
 	_, err := Load()
 	if err == nil {
@@ -57,16 +63,24 @@ func TestLoadMissingRequired(t *testing.T) {
 
 func TestLoadWithCustomAuthMethod(t *testing.T) {
 	// Set required environment variables
-	os.Setenv("INSTANCE_DOMAIN", "https://test.jamfcloud.com")
-	os.Setenv("CLIENT_ID", "test-client")
-	os.Setenv("CLIENT_SECRET", "test-secret")
-	os.Setenv("AUTH_METHOD", "basic")
+	if err := os.Setenv("INSTANCE_DOMAIN", "https://test.jamfcloud.com"); err != nil {
+		t.Fatalf("Failed to set INSTANCE_DOMAIN: %v", err)
+	}
+	if err := os.Setenv("CLIENT_ID", "test-client"); err != nil {
+		t.Fatalf("Failed to set CLIENT_ID: %v", err)
+	}
+	if err := os.Setenv("CLIENT_SECRET", "test-secret"); err != nil {
+		t.Fatalf("Failed to set CLIENT_SECRET: %v", err)
+	}
+	if err := os.Setenv("AUTH_METHOD", "basic"); err != nil {
+		t.Fatalf("Failed to set AUTH_METHOD: %v", err)
+	}
 
 	defer func() {
-		os.Unsetenv("INSTANCE_DOMAIN")
-		os.Unsetenv("CLIENT_ID")
-		os.Unsetenv("CLIENT_SECRET")
-		os.Unsetenv("AUTH_METHOD")
+		_ = os.Unsetenv("INSTANCE_DOMAIN")
+		_ = os.Unsetenv("CLIENT_ID")
+		_ = os.Unsetenv("CLIENT_SECRET")
+		_ = os.Unsetenv("AUTH_METHOD")
 	}()
 
 	cfg, err := Load()

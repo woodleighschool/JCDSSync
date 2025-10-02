@@ -42,15 +42,29 @@ type jamfClient struct {
 
 // NewClient creates a new Jamf client using the provided configuration
 func NewClient(cfg *config.Config, logLevel string, logger *slog.Logger) (Client, error) {
-	os.Setenv("INSTANCE_DOMAIN", cfg.InstanceDomain)
-	os.Setenv("CLIENT_ID", cfg.ClientID)
-	os.Setenv("CLIENT_SECRET", cfg.ClientSecret)
-	os.Setenv("AUTH_METHOD", cfg.AuthMethod)
-	os.Setenv("TOKEN_REFRESH_BUFFER_PERIOD_SECONDS", cfg.TokenRefreshBufferPeriod)
-	os.Setenv("TOKEN_BUFFER_PERIOD_SECONDS", cfg.TokenBufferPeriod)
+	if err := os.Setenv("INSTANCE_DOMAIN", cfg.InstanceDomain); err != nil {
+		return nil, fmt.Errorf("failed to set INSTANCE_DOMAIN environment variable: %w", err)
+	}
+	if err := os.Setenv("CLIENT_ID", cfg.ClientID); err != nil {
+		return nil, fmt.Errorf("failed to set CLIENT_ID environment variable: %w", err)
+	}
+	if err := os.Setenv("CLIENT_SECRET", cfg.ClientSecret); err != nil {
+		return nil, fmt.Errorf("failed to set CLIENT_SECRET environment variable: %w", err)
+	}
+	if err := os.Setenv("AUTH_METHOD", cfg.AuthMethod); err != nil {
+		return nil, fmt.Errorf("failed to set AUTH_METHOD environment variable: %w", err)
+	}
+	if err := os.Setenv("TOKEN_REFRESH_BUFFER_PERIOD_SECONDS", cfg.TokenRefreshBufferPeriod); err != nil {
+		return nil, fmt.Errorf("failed to set TOKEN_REFRESH_BUFFER_PERIOD_SECONDS environment variable: %w", err)
+	}
+	if err := os.Setenv("TOKEN_BUFFER_PERIOD_SECONDS", cfg.TokenBufferPeriod); err != nil {
+		return nil, fmt.Errorf("failed to set TOKEN_BUFFER_PERIOD_SECONDS environment variable: %w", err)
+	}
 
 	// Set log level to fatal to shut up SDK
-	os.Setenv("LOG_LEVEL", "fatal")
+	if err := os.Setenv("LOG_LEVEL", "fatal"); err != nil {
+		return nil, fmt.Errorf("failed to set LOG_LEVEL environment variable: %w", err)
+	}
 
 	client, err := jamfpro.BuildClientWithEnv()
 	if err != nil {
@@ -110,7 +124,11 @@ func (j *jamfClient) DownloadPackage(fileName, localPath string) error {
 		j.logger.Error("HTTP request failed", "filename", fileName, "error", err)
 		return fmt.Errorf("failed to download %s: %w", fileName, err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			j.logger.Warn("failed to close response body", "filename", fileName, "error", closeErr)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		j.logger.Error("HTTP request returned error status", "filename", fileName, "status_code", resp.StatusCode, "status", resp.Status)
@@ -123,7 +141,11 @@ func (j *jamfClient) DownloadPackage(fileName, localPath string) error {
 		j.logger.Error("Failed to create local file", "filename", fileName, "local_path", localPath, "error", err)
 		return fmt.Errorf("failed to create local file %s: %w", localPath, err)
 	}
-	defer out.Close()
+	defer func() {
+		if closeErr := out.Close(); closeErr != nil {
+			j.logger.Warn("failed to close file", "filename", fileName, "error", closeErr)
+		}
+	}()
 
 	j.logger.Debug("Writing file data", "filename", fileName)
 	bytesWritten, err := io.Copy(out, resp.Body)
@@ -183,7 +205,11 @@ func (j *jamfClient) downloadPackageWithClient(httpClient *http.Client, fileName
 		j.logger.Error("HTTP request failed for batch item", "filename", fileName, "error", err)
 		return fmt.Errorf("failed to download %s: %w", fileName, err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if closeErr := resp.Body.Close(); closeErr != nil {
+			j.logger.Warn("failed to close response body for batch item", "filename", fileName, "error", closeErr)
+		}
+	}()
 
 	if resp.StatusCode != http.StatusOK {
 		j.logger.Error("HTTP request returned error status for batch item", "filename", fileName, "status_code", resp.StatusCode, "status", resp.Status)
@@ -197,7 +223,11 @@ func (j *jamfClient) downloadPackageWithClient(httpClient *http.Client, fileName
 		j.logger.Error("Failed to create local file for batch item", "filename", fileName, "local_path", localPath, "error", err)
 		return fmt.Errorf("failed to create local file %s: %w", localPath, err)
 	}
-	defer out.Close()
+	defer func() {
+		if closeErr := out.Close(); closeErr != nil {
+			j.logger.Warn("failed to close file for batch item", "filename", fileName, "error", closeErr)
+		}
+	}()
 
 	j.logger.Debug("Writing file data for batch item", "filename", fileName)
 	bytesWritten, err := io.Copy(out, resp.Body)

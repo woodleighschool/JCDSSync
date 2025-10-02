@@ -55,12 +55,24 @@ func newRootCmd() *cobra.Command {
 	flags.String("client-id", "", "OAuth2 client ID (can also use CLIENT_ID env var)")
 	flags.String("client-secret", "", "OAuth2 client secret (can also use CLIENT_SECRET env var)")
 
-	viper.BindPFlag("instance_domain", flags.Lookup("instance-domain"))
-	viper.BindPFlag("client_id", flags.Lookup("client-id"))
-	viper.BindPFlag("client_secret", flags.Lookup("client-secret"))
-	viper.BindPFlag("local_folder", flags.Lookup("local-folder"))
-	viper.BindPFlag("sync_schedule", flags.Lookup("schedule"))
-	viper.BindPFlag("log_level", flags.Lookup("log-level"))
+	if err := viper.BindPFlag("instance_domain", flags.Lookup("instance-domain")); err != nil {
+		panic(fmt.Sprintf("failed to bind instance-domain flag: %v", err))
+	}
+	if err := viper.BindPFlag("client_id", flags.Lookup("client-id")); err != nil {
+		panic(fmt.Sprintf("failed to bind client-id flag: %v", err))
+	}
+	if err := viper.BindPFlag("client_secret", flags.Lookup("client-secret")); err != nil {
+		panic(fmt.Sprintf("failed to bind client-secret flag: %v", err))
+	}
+	if err := viper.BindPFlag("local_folder", flags.Lookup("local-folder")); err != nil {
+		panic(fmt.Sprintf("failed to bind local-folder flag: %v", err))
+	}
+	if err := viper.BindPFlag("sync_schedule", flags.Lookup("schedule")); err != nil {
+		panic(fmt.Sprintf("failed to bind schedule flag: %v", err))
+	}
+	if err := viper.BindPFlag("log_level", flags.Lookup("log-level")); err != nil {
+		panic(fmt.Sprintf("failed to bind log-level flag: %v", err))
+	}
 
 	cmd.AddCommand(newVersionCmd())
 
@@ -97,7 +109,11 @@ func runSync() error {
 	if err != nil {
 		return fmt.Errorf("failed to create Jamf client: %w", err)
 	}
-	defer jamfClient.Close()
+	defer func() {
+		if closeErr := jamfClient.Close(); closeErr != nil {
+			logger.Warn("failed to close Jamf client", "error", closeErr)
+		}
+	}()
 
 	syncService := sync.NewService(jamfClient, cfg.LocalFolder, logger)
 
