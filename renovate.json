@@ -1,35 +1,22 @@
 {
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-    "extends": [
-        "config:recommended"
-    ],
-    "pip_requirements": {
-        "enabled": true,
-        "managerFilePatterns": [
-            "/requirements\\.txt$/",
-            "/requirements/.*\\.txt$/"
-        ]
-    },
-    "pip_setup": {
-        "enabled": true,
-        "managerFilePatterns": [
-            "/setup\\.py$/",
-            "/pyproject\\.toml$/"
-        ]
+    "extends": ["config:recommended"],
+    "gomod": {
+        "enabled": true
     },
     "packageRules": [
         {
-            "matchCategories": [
-                "python"
-            ],
+            "matchCategories": ["golang"],
             "enabled": true
         },
         {
-            "matchManagers": [
-                "pip_requirements",
-                "pip_setup"
-            ],
-            "groupName": "Python dependencies"
+            "matchManagers": ["gomod"],
+            "groupName": "Go dependencies"
+        },
+        {
+            "matchManagers": ["gomod"],
+            "matchDepTypes": ["indirect"],
+            "groupName": "Go indirect dependencies"
         }
     ]
 }
